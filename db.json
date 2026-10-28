@@ -1,0 +1,22 @@
+{
+  "_aviso": "Banco PROVISÓRIO. CPFs fictícios; senha de todos os usuários demo: urbani123 (SHA-256 com salt).",
+  "usuarios": [
+    { "id": 1, "nome": "Mariana Souza", "cpf": "123.456.789-09", "data_nascimento": "1995-03-14", "email": "mariana.souza@exemplo.com", "salt": "urbani-demo-1", "senha_hash": "78d62b2db32234df295b812e40992d5c740fc59af54a41def415e0277f52be65", "perfil": "CIDADAO", "ativo": true, "cidade": "", "bairro": "", "criado_em": "2026-09-01T08:00:00-03:00" },
+    { "id": 2, "nome": "Carlos Lima", "cpf": "987.654.321-00", "data_nascimento": "1990-07-22", "email": "carlos.lima@exemplo.com", "salt": "urbani-demo-2", "senha_hash": "a5ce3e2661026065515315c77bba9b748df7e668506b4b79416c5a6911e15081", "perfil": "CIDADAO", "ativo": true, "cidade": "São Paulo", "bairro": "Consolação", "criado_em": "2026-09-01T08:00:00-03:00" },
+    { "id": 3, "nome": "Fernanda Alves", "cpf": "246.813.579-28", "data_nascimento": "1988-11-05", "email": "fernanda.alves@prefeitura.exemplo.gov.br", "salt": "urbani-demo-3", "senha_hash": "075c9648b392765860a83bf556056d72aca4d7cbf0e0eda2c7b55de4d7e2b6a6", "perfil": "GESTOR", "ativo": true, "cidade": "São Paulo", "bairro": "Sé", "criado_em": "2026-09-01T08:00:00-03:00" },
+    { "id": 4, "nome": "Admin Urbani", "cpf": "135.792.468-28", "data_nascimento": "1985-01-30", "email": "admin@urbani.exemplo.com", "salt": "urbani-demo-4", "senha_hash": "5b01362b0379ab94a0dfc23ceb817cadef6fab5640a5b4d507c246bb95733b15", "perfil": "ADMIN", "ativo": true, "cidade": "São Paulo", "bairro": "Centro", "criado_em": "2026-09-01T08:00:00-03:00" }
+  ],
+  "categorias": [
+    { "id": 1, "nome": "Buraco na via" },
+    { "id": 2, "nome": "Iluminação pública" },
+    { "id": 3, "nome": "Poda de árvore" }
+  ],
+  "ocorrencias": [
+    { "id": 1, "usuario_id": 1, "categoria_id": 1, "titulo": "Buraco profundo na faixa da direita", "descricao": "Buraco de aproximadamente 40 cm de diâmetro que já causou desvio brusco de veículos.", "status": "ABERTA", "localizacao": { "latitude": -23.5614, "longitude": -46.6559 }, "endereco_referencia": "Av. Paulista, próximo ao nº 1000", "criado_em": "2026-10-02T09:15:00-03:00" },
+    { "id": 2, "usuario_id": 2, "categoria_id": 2, "titulo": "Poste apagado há uma semana", "descricao": "Trecho inteiro da calçada sem iluminação à noite.", "status": "EM_ANALISE", "localizacao": { "latitude": -23.5489, "longitude": -46.6388 }, "endereco_referencia": "Rua Augusta, altura do nº 500", "criado_em": "2026-10-03T19:40:00-03:00" },
+    { "id": 3, "usuario_id": 1, "categoria_id": 3, "titulo": "Galho ameaçando a fiação", "descricao": "Galho grosso encostando nos fios de energia, com risco de queda.", "status": "EM_ANDAMENTO", "localizacao": { "latitude": -23.5703, "longitude": -46.6417 }, "endereco_referencia": "Rua Vergueiro, em frente ao nº 800", "criado_em": "2026-10-04T07:50:00-03:00" },
+    { "id": 4, "usuario_id": 2, "categoria_id": 1, "titulo": "Cratera após chuva forte", "descricao": "Asfalto cedeu após a chuva e abriu uma cratera na pista.", "status": "RESOLVIDA", "localizacao": { "latitude": -23.5329, "longitude": -46.6395 }, "endereco_referencia": "Rua da Consolação, nº 1200", "criado_em": "2026-09-20T11:00:00-03:00" },
+    { "id": 5, "usuario_id": 1, "categoria_id": 2, "titulo": "Luminária piscando na praça", "descricao": "Luminária central da praça pisca de forma intermitente desde o fim de semana.", "status": "RESOLVIDA", "localizacao": { "latitude": -23.5874, "longitude": -46.6576 }, "endereco_referencia": "Praça na Rua Pedroso Alvarenga", "criado_em": "2026-09-25T20:10:00-03:00" },
+    { "id": 6, "usuario_id": 2, "categoria_id": 3, "titulo": "Árvore com risco de queda", "descricao": "Árvore inclinada sobre a calçada após ventania.", "status": "REJEITADA", "localizacao": { "latitude": -23.5505, "longitude": -46.6333 }, "endereco_referencia": "Largo São Francisco", "criado_em": "2026-10-05T13:25:00-03:00" }
+  ]
+}

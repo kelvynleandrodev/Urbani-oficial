@@ -1,49 +1,7 @@
 /* ==========================================================
-   URBANI · script.js (JavaScript Vanilla, sem bibliotecas)
+   URBANI · app.js · Dashboard (JavaScript Vanilla, sem bibliotecas)
+   Depende de db.js; é iniciado por auth.js após o login.
    ========================================================== */
-
-/* ---------- 1. BASE DE DADOS MOCKADA ----------
-   Espelha o ArquivoDoJSON do Sprint 0 (usuarios, categorias, ocorrencias).
-   Fica embutida aqui para funcionar abrindo o index.html direto (file://).
-   Quando o back-end existir, troque lerBase() por um fetch('/api/...'). */
-const BASE = {
-  usuarios: [
-    { id: 1, nome: "Mariana Souza", perfil: "CIDADAO" },
-    { id: 2, nome: "Carlos Lima", perfil: "CIDADAO" },
-    { id: 3, nome: "Fernanda Alves", perfil: "GESTOR" }
-  ],
-  categorias: [
-    { id: 1, nome: "Buraco na via" },
-    { id: 2, nome: "Iluminação pública" },
-    { id: 3, nome: "Poda de árvore" }
-  ],
-  ocorrencias: [
-    { id: 1, usuario_id: 1, categoria_id: 1, titulo: "Buraco profundo na faixa da direita",
-      descricao: "Buraco de aproximadamente 40 cm de diâmetro que já causou desvio brusco de veículos.",
-      status: "ABERTA", localizacao: { latitude: -23.5614, longitude: -46.6559 },
-      endereco_referencia: "Av. Paulista, próximo ao nº 1000", criado_em: "2026-10-02T09:15:00-03:00" },
-    { id: 2, usuario_id: 2, categoria_id: 2, titulo: "Poste apagado há uma semana",
-      descricao: "Trecho inteiro da calçada sem iluminação à noite.",
-      status: "EM_ANALISE", localizacao: { latitude: -23.5489, longitude: -46.6388 },
-      endereco_referencia: "Rua Augusta, altura do nº 500", criado_em: "2026-10-03T19:40:00-03:00" },
-    { id: 3, usuario_id: 1, categoria_id: 3, titulo: "Galho ameaçando a fiação",
-      descricao: "Galho grosso encostando nos fios de energia, com risco de queda.",
-      status: "EM_ANDAMENTO", localizacao: { latitude: -23.5703, longitude: -46.6417 },
-      endereco_referencia: "Rua Vergueiro, em frente ao nº 800", criado_em: "2026-10-04T07:50:00-03:00" },
-    { id: 4, usuario_id: 2, categoria_id: 1, titulo: "Cratera após chuva forte",
-      descricao: "Asfalto cedeu após a chuva e abriu uma cratera na pista.",
-      status: "RESOLVIDA", localizacao: { latitude: -23.5329, longitude: -46.6395 },
-      endereco_referencia: "Rua da Consolação, nº 1200", criado_em: "2026-09-20T11:00:00-03:00" },
-    { id: 5, usuario_id: 1, categoria_id: 2, titulo: "Luminária piscando na praça",
-      descricao: "Luminária central da praça pisca de forma intermitente desde o fim de semana.",
-      status: "RESOLVIDA", localizacao: { latitude: -23.5874, longitude: -46.6576 },
-      endereco_referencia: "Praça na Rua Pedroso Alvarenga", criado_em: "2026-09-25T20:10:00-03:00" },
-    { id: 6, usuario_id: 2, categoria_id: 3, titulo: "Árvore com risco de queda",
-      descricao: "Árvore inclinada sobre a calçada após ventania.",
-      status: "REJEITADA", localizacao: { latitude: -23.5505, longitude: -46.6333 },
-      endereco_referencia: "Largo São Francisco", criado_em: "2026-10-05T13:25:00-03:00" }
-  ]
-};
 
 /* Anúncios mockados (Prefeitura / negócios locais) */
 const ANUNCIOS = [
@@ -52,7 +10,7 @@ const ANUNCIOS = [
 ];
 
 /* ---------- 2. ESTADO ---------- */
-const USUARIO_ATUAL = 1;                         // simula o cidadão logado (Mariana)
+let usuario = null;                              // usuário logado (definido em iniciarApp)
 const ROTULO = { ABERTA: "Aberta", EM_ANALISE: "Em análise", EM_ANDAMENTO: "Em andamento", RESOLVIDA: "Resolvida", REJEITADA: "Rejeitada" };
 let ocorrencias = [];
 let apoios = { 1: 12, 2: 7, 3: 5, 4: 21, 5: 9, 6: 1 };  // contagem de apoios (mock)
@@ -63,14 +21,9 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 /* Escapa texto digitado pelo usuário antes de usar em innerHTML */
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const autor = (id) => (BASE.usuarios.find((u) => u.id === id) || {}).nome || "Anônimo";
-const categoria = (id) => (BASE.categorias.find((c) => c.id === id) || {}).nome || "Outros";
+const autor = (id) => (Banco.usuarios().find((u) => u.id === id) || {}).nome || "Anônimo";
+const categoria = (id) => (Banco.base.categorias.find((c) => c.id === id) || {}).nome || "Outros";
 const data = (iso) => new Date(iso).toLocaleDateString("pt-BR");
-
-/* Simula a leitura assíncrona da base (troque por fetch no futuro) */
-function lerBase() {
-  return new Promise((ok) => setTimeout(() => ok(BASE), 150));
-}
 
 /* ---------- 3. NAVEGAÇÃO POR ABAS (SPA) ---------- */
 function abrirAba(nome) {
@@ -78,7 +31,7 @@ function abrirAba(nome) {
   $$(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === nome));
   window.scrollTo({ top: 0 });
 }
-$$(".nav-btn").forEach((b) => b.addEventListener("click", () => abrirAba(b.dataset.tab)));
+$$(".nav-btn[data-tab]").forEach((b) => b.addEventListener("click", () => abrirAba(b.dataset.tab)));
 
 /* ---------- 4. RENDERIZAÇÃO ---------- */
 /* Card de ocorrência: título, autor, endereço, descrição, status e ações */
@@ -148,7 +101,7 @@ function renderMapa() {
 /* Atualiza todas as telas após qualquer mudança nos dados */
 function renderTudo() {
   const recentes = [...ocorrencias].sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
-  const minhas = recentes.filter((o) => o.usuario_id === USUARIO_ATUAL);
+  const minhas = recentes.filter((o) => o.usuario_id === usuario.id);
   renderStats("#stats-geral", ocorrencias);
   renderLista("#feed-recentes", recentes.slice(0, 3), false);
   renderStats("#stats-comunidade", ocorrencias);
@@ -192,7 +145,7 @@ document.addEventListener("click", (e) => {
 
 ["#flt-categoria", "#flt-status", "#flt-ordem"].forEach((s) => $(s).addEventListener("change", renderComunidade));
 
-/* Formulário: valida e cria uma ocorrência (em memória, sem back-end) */
+/* Formulário: valida e cria uma ocorrência (salva no localStorage, sem back-end) */
 $("#form-nova").addEventListener("submit", (e) => {
   e.preventDefault();
   const v = (id) => $(id).value.trim();
@@ -201,30 +154,56 @@ $("#form-nova").addEventListener("submit", (e) => {
     return;
   }
   $("#form-erro").textContent = "";
-  ocorrencias.push({
-    id: Date.now(), usuario_id: USUARIO_ATUAL, categoria_id: Number($("#f-categoria").value),
+  const nova = {
+    id: Date.now(), usuario_id: usuario.id, categoria_id: Number($("#f-categoria").value),
     titulo: v("#f-titulo"), descricao: v("#f-descricao"), status: "ABERTA",
     // Sem geocodificação: posição aproximada perto do centro de SP (placeholder)
     localizacao: { latitude: -23.55 - Math.random() * 0.04, longitude: -46.64 - Math.random() * 0.02 },
     endereco_referencia: v("#f-endereco"), criado_em: new Date().toISOString()
-  });
+  };
+  ocorrencias.push(nova); Banco.salvarOcorrencia(nova);
   e.target.reset();
   renderTudo();
   toast("Ocorrência registrada!");
   abrirAba("minhas");
 });
 
-/* ---------- 6. INICIALIZAÇÃO ---------- */
-lerBase().then((base) => {
-  ocorrencias = base.ocorrencias.map((o) => ({ ...o }));
-  const user = base.usuarios.find((u) => u.id === USUARIO_ATUAL);
-  $("#nome-usuario").textContent = user.nome.split(" ")[0];
-  $("#avatar").textContent = user.nome[0];
-  // Categorias nos selects (formulário e filtro)
+/* ---------- 6. PERFIL INCOMPLETO (alerta + modal) ---------- */
+function atualizarAlertaPerfil() {
+  const pendente = !usuario.cidade || !usuario.bairro;
+  $("#alerta-perfil").hidden = !pendente;   // faixa na tela Geral
+  $("#avatar-badge").hidden = !pendente;    // símbolo de alerta no avatar
+}
+const modalPerfil = $("#modal-perfil");
+function abrirPerfil() {
+  $("#p-cidade").value = usuario.cidade || ""; $("#p-bairro").value = usuario.bairro || "";
+  $("#p-erro").textContent = ""; modalPerfil.showModal();
+}
+$("#avatar").addEventListener("click", abrirPerfil);
+$("#btn-completar").addEventListener("click", abrirPerfil);
+$("#p-cancelar").addEventListener("click", () => modalPerfil.close());
+$("#form-perfil").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const c = $("#p-cidade").value.trim(), b = $("#p-bairro").value.trim();
+  if (!c || !b) { $("#p-erro").textContent = "Informe cidade e bairro."; return; }
+  usuario.cidade = c; usuario.bairro = b;
+  Banco.salvarUsuario(usuario);
+  atualizarAlertaPerfil(); modalPerfil.close(); toast("Perfil atualizado!");
+});
+
+/* ---------- 7. INICIALIZAÇÃO DO DASHBOARD (chamada por auth.js após o login) ---------- */
+function iniciarApp(u) {
+  usuario = u;
+  const base = Banco.base;
+  ocorrencias = base.ocorrencias.concat(Banco.ocorrenciasLocais());
+  meusApoios.clear();
+  $("#nome-usuario").textContent = u.nome.split(" ")[0];
+  $("#avatar-letra").textContent = u.nome[0];
   const opts = base.categorias.map((c) => `<option value="${c.id}">${esc(c.nome)}</option>`).join("");
   $("#f-categoria").innerHTML = opts;
-  $("#flt-categoria").insertAdjacentHTML("beforeend", opts);
-  // Anúncio fixo abaixo do mapa
+  $("#flt-categoria").innerHTML = '<option value="">Todas as categorias</option>' + opts;
   $("#ad-lateral").innerHTML = adHTML(ANUNCIOS[0]);
+  atualizarAlertaPerfil();
+  abrirAba("geral");
   renderTudo();
-});
+}

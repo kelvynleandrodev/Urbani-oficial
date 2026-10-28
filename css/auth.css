@@ -1,0 +1,44 @@
+/* ==========================================================
+   auth.css · Telas de login e cadastro (split screen do Figma)
+   ========================================================== */
+.auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+
+.auth-brand {
+  background: var(--grafite); color: #fff; padding: 48px;
+  display: flex; flex-direction: column; justify-content: center; gap: 16px;
+}
+.auth-brand h2 { font-size: clamp(1.9rem, 4vw, 2.9rem); line-height: 1.1; }
+.auth-brand em { color: var(--laranja); font-style: normal; }
+.auth-brand p { color: #c9ced8; max-width: 42ch; }
+.auth-brand small { margin-top: 40px; color: #8b91a0; }
+
+.auth-form {
+  display: flex; flex-direction: column; justify-content: center; gap: 22px;
+  width: 100%; max-width: 520px; margin: 0 auto; padding: 40px 28px;
+}
+.auth-tabs { display: flex; border-bottom: 2px solid var(--borda); }
+.auth-tabs button {
+  flex: 1; background: none; border: 0; padding: 10px; cursor: pointer;
+  font-weight: 700; color: var(--texto-suave);
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+}
+.auth-tabs button.active { color: var(--laranja); border-color: var(--laranja); }
+
+.auth form { display: grid; gap: 14px; }
+.auth h1 { font-size: 1.6rem; }
+.linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.links { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+.breve { font-size: .82rem; color: var(--texto-suave); cursor: not-allowed; }
+.breve i {
+  font-style: normal; font-size: .68rem; margin-left: 4px; padding: 1px 7px;
+  border-radius: 6px; background: var(--borda);
+}
+.demo { font-size: .78rem; color: var(--texto-suave); background: #fff; border: 1px dashed var(--borda); border-radius: 8px; padding: 6px 10px; }
+
+@media (max-width: 800px) {
+  .auth { grid-template-columns: 1fr; }
+  .auth-brand { padding: 28px 22px; }
+  .auth-brand small { display: none; }
+  .linha2 { grid-template-columns: 1fr; }
+}
