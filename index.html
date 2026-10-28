@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Urbani · Gestão urbana com dados reais</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== MENU LATERAL ========== -->
+  <nav class="sidebar" aria-label="Navegação principal">
+    <div class="avatar" id="avatar" title="Perfil" aria-hidden="true">M</div>
+    <button class="nav-btn active" data-tab="geral">Geral</button>
+    <button class="nav-btn" data-tab="nova">Nova solicitação</button>
+    <button class="nav-btn" data-tab="comunidade">Comunidade</button>
+    <button class="nav-btn" data-tab="minhas">Minhas solicitações</button>
+  </nav>
+
+  <!-- ========== ÁREA CENTRAL (abas) ========== -->
+  <main class="content">
+
+    <!-- Aba: Geral -->
+    <section class="panel active" id="tab-geral">
+      <h1 class="panel-title">Bem-vindo, <span id="nome-usuario"></span></h1>
+      <div class="stats" id="stats-geral"></div>
+      <h2 class="subtitle">Solicitações recentes</h2>
+      <div class="feed" id="feed-recentes"></div>
+    </section>
+
+    <!-- Aba: Nova solicitação -->
+    <section class="panel" id="tab-nova">
+      <h1 class="panel-title">Solicitação de serviço</h1>
+      <form class="form-card" id="form-nova" novalidate>
+        <label>Categoria
+          <select id="f-categoria" required></select>
+        </label>
+        <label>Título
+          <input id="f-titulo" maxlength="80" placeholder="Ex.: Buraco profundo na faixa da direita" required>
+        </label>
+        <label>Descrição do problema
+          <textarea id="f-descricao" rows="4" placeholder="Descreva o problema urbano…" required></textarea>
+        </label>
+        <label>Endereço de referência
+          <input id="f-endereco" placeholder="Rua, número ou ponto de referência" required>
+        </label>
+        <label>Urgência
+          <select id="f-urgencia">
+            <option>Baixa</option><option selected>Média</option><option>Alta</option>
+          </select>
+        </label>
+        <label>Foto (opcional)
+          <input type="file" id="f-foto" accept="image/*">
+        </label>
+        <p class="form-erro" id="form-erro" role="alert"></p>
+        <button type="submit" class="btn-primary">Enviar solicitação</button>
+      </form>
+    </section>
+
+    <!-- Aba: Comunidade -->
+    <section class="panel" id="tab-comunidade">
+      <h1 class="panel-title">Comunidade</h1>
+      <div class="stats" id="stats-comunidade"></div>
+      <div class="filters">
+        <select id="flt-categoria" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+        <select id="flt-status" aria-label="Filtrar por status">
+          <option value="">Todos os status</option>
+          <option value="ABERTA">Aberta</option>
+          <option value="EM_ANALISE">Em análise</option>
+          <option value="EM_ANDAMENTO">Em andamento</option>
+          <option value="RESOLVIDA">Resolvida</option>
+          <option value="REJEITADA">Rejeitada</option>
+        </select>
+        <select id="flt-ordem" aria-label="Ordenar">
+          <option value="recentes">Mais recentes</option>
+          <option value="apoiadas">Mais apoiadas</option>
+        </select>
+      </div>
+      <div class="feed" id="feed-comunidade"></div>
+    </section>
+
+    <!-- Aba: Minhas solicitações -->
+    <section class="panel" id="tab-minhas">
+      <h1 class="panel-title">Minhas solicitações</h1>
+      <div class="stats" id="stats-minhas"></div>
+      <div class="feed" id="feed-minhas"></div>
+    </section>
+  </main>
+
+  <!-- ========== ÁREA DIREITA: MAPA + ANÚNCIO ========== -->
+  <aside class="side-right">
+    <div class="map" id="mapa" aria-label="Mapa de ocorrências"></div>
+    <div class="map-legend">
+      <span><i style="background:var(--urgente)"></i>Aberta</span>
+      <span><i style="background:var(--analise)"></i>Em curso</span>
+      <span><i style="background:var(--resolvido)"></i>Resolvida</span>
+    </div>
+    <div id="ad-lateral"></div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="script.js"></script>
+</body>
+</html>
