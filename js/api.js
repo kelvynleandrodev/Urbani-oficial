@@ -4,9 +4,13 @@
    enviamos pedidos HTTP e devolvemos as respostas.
    ========================================================== */
 
-/* Endereço da API. Por padrão, a mesma máquina que serve o front, na porta 8000.
+/* Endereço da API:
+   - publicado (Render): a API e o site estão no mesmo endereço → "/api";
+   - desenvolvimento com Live Server (porta 5500): a API roda na porta 8000.
    Para apontar outro servidor, defina window.URBANI_API antes de carregar este arquivo. */
-const API_URL = window.URBANI_API || `http://${location.hostname || "localhost"}:8000/api`;
+const API_URL = window.URBANI_API || (location.port === "5500" || location.protocol === "file:"
+  ? `http://${location.hostname || "localhost"}:8000/api`
+  : "/api");
 
 const Api = (() => {
   const CHAVE = "urbani_token";          // sessionStorage: some ao fechar a aba
