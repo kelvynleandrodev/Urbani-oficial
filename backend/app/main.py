@@ -4,11 +4,13 @@ Rodar:  uvicorn app.main:app --reload      (dentro da pasta backend)
 Docs:   http://localhost:8000/docs         (Swagger gerado automaticamente)
 """
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from . import config
 from .db import pool
@@ -40,10 +42,7 @@ app.add_middleware(
 
 @app.exception_handler(RequestValidationError)
 async def erro_de_validacao(_: Request, exc: RequestValidationError):
-    """Transforma os erros do Pydantic em mensagens curtas em português.
-
-    Formato: {"detail": "<primeira mensagem>", "erros": [...todas...]}
-    """
+    """Transforma os erros do Pydantic em mensagens curtas em português."""
     mensagens = []
     for e in exc.errors():
         campo = str(e["loc"][-1]) if e.get("loc") else "dados"
@@ -72,3 +71,14 @@ def saude():
 app.include_router(usuarios.router)
 app.include_router(categorias.router)
 app.include_router(ocorrencias.router)
+
+# Front-end no mesmo endereço (publicação no Render).
+# Só index.html, css/ e js/ ficam públicos; o resto do repositório não.
+_FRONT = Path(__file__).resolve().parents[2]
+if (_FRONT / "index.html").exists():
+    app.mount("/css", StaticFiles(directory=_FRONT / "css"), name="css")
+    app.mount("/js", StaticFiles(directory=_FRONT / "js"), name="js")
+
+    @app.get("/", include_in_schema=False)
+    def pagina_inicial():
+        return FileResponse(_FRONT / "index.html")
