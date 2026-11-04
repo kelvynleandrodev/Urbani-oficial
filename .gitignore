@@ -427,3 +427,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Urbani · back-end Python
+.env
+.venv/
+venv/
+.pytest_cache/

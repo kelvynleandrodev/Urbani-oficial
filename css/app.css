@@ -178,3 +178,16 @@ dialog::backdrop { background: rgba(26,28,36,.6); }
 dialog form { display: grid; gap: 14px; }
 .dialog-acoes { display: flex; gap: 10px; }
 .dialog-acoes .btn-primary { flex: 1; }
+/* ---------- Localização, histórico e gestão (integração com a API) ---------- */
+.local { border: 1.5px solid var(--borda); border-radius: 10px; padding: 12px; display: grid; gap: 10px; }
+.local legend { font-weight: 600; font-size: .88rem; padding: 0 6px; }
+.local .btn-sec { justify-self: start; padding: 8px 16px; }
+.local-aviso { font-size: .8rem; color: var(--texto-suave); min-height: 1.2em; }
+.form-card .linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.historico { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+.historico:empty { display: none; }
+.gestao { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.gestao select { border: 1.5px solid var(--borda); border-radius: 10px; padding: 6px 10px; background: #fff; }
+.gestao button { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer; background: var(--grafite); color: #fff; }
+.acoes button:disabled, .gestao button:disabled, .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 720px) { .form-card .linha2 { grid-template-columns: 1fr; } }

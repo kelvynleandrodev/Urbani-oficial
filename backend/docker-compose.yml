@@ -1,0 +1,22 @@
+# Sobe um PostgreSQL 16 já com PostGIS, pronto para o Urbani.
+# Uso (dentro da pasta backend):  docker compose up -d
+# Os dados ficam no volume "urbani_dados" e sobrevivem a reinícios.
+services:
+  banco:
+    image: postgis/postgis:16-3.4
+    container_name: urbani-banco
+    environment:
+      POSTGRES_USER: urbani
+      POSTGRES_PASSWORD: urbani        # só para desenvolvimento local
+      POSTGRES_DB: urbani
+    ports:
+      - "5432:5432"
+    volumes:
+      - urbani_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urbani -d urbani"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  urbani_dados:
