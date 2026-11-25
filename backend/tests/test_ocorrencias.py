@@ -77,7 +77,8 @@ def test_prioridade_urgencia_depois_apoios_e_encerradas_no_fim(cliente):
     itens = cliente.get("/api/ocorrencias?ordem=prioridade&limite=200",
                         headers=entrar(cliente, MARIANA)).json()["itens"]
     peso = {"ALTA": 3, "MEDIA": 2, "BAIXA": 1}
-    chaves = [(o["status"] in ("RESOLVIDA", "REJEITADA"), -peso[o["urgencia"]], -o["apoios_total"]) for o in itens]
+    # O ranking usa os apoios VÁLIDOS (apoios de contas recém-criadas não contam)
+    chaves = [(o["status"] in ("RESOLVIDA", "REJEITADA"), -peso[o["urgencia"]], -o["apoios_validos"]) for o in itens]
     assert chaves == sorted(chaves)
 
 

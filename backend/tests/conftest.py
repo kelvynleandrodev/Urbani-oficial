@@ -86,3 +86,36 @@ def ocorrencia(lat: float = -23.5600, lng: float = -46.6500, **extra) -> dict:
 MARIANA = "mariana.souza@exemplo.com"     # cidadã (dados de demonstração)
 CARLOS = "carlos.lima@exemplo.com"        # cidadão
 FERNANDA = "fernanda.alves@prefeitura.exemplo.gov.br"   # gestora
+
+
+# ------------------------- Ajudantes de gestão e campo -------------------------
+ADMIN = "admin@urbani.exemplo.com"
+_n = itertools.count(1)
+
+
+def envelhecer_conta(sql, cabecalho: dict, cliente, dias: int = 2) -> None:
+    """Faz a conta parecer antiga: os apoios dela passam a contar no ranking."""
+    eu = cliente.get("/api/usuarios/me", headers=cabecalho).json()
+    sql.execute("UPDATE usuarios SET criado_em = now() - make_interval(days => %s) WHERE id = %s", (dias, eu["id"]))
+
+
+def nova_equipe(cliente, gestor: dict, membros: int = 1) -> tuple[int, list[dict]]:
+    """Cria uma equipe com colaboradores novos. Devolve (equipe_id, [cabeçalhos de login])."""
+    r = cliente.post("/api/gestao/equipes", json={"nome": f"Equipe Teste {next(_n)}"}, headers=gestor)
+    assert r.status_code == 201, r.text
+    equipe_id, logins = r.json()["id"], []
+    for _ in range(membros):
+        d = dados_cadastro(perfil="COLABORADOR", equipe_id=equipe_id)
+        assert cliente.post("/api/gestao/usuarios", json=d, headers=gestor).status_code == 201
+        logins.append(entrar(cliente, d["email"], d["senha"]))
+    return equipe_id, logins
+
+
+def nova_ocorrencia(cliente, **extra) -> tuple[int, dict]:
+    """Ocorrência nova em um ponto único. Devolve (id, cabeçalho do autor)."""
+    autor = novo_cidadao(cliente)
+    k = next(_n)
+    dados = ocorrencia(-22.0 - k * 0.01, -45.0 - k * 0.01, **extra)
+    r = cliente.post("/api/ocorrencias", json=dados, headers=autor)
+    assert r.status_code == 201, r.text
+    return r.json()["id"], autor

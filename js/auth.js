@@ -27,7 +27,15 @@ $$(".auth-tabs button").forEach((b) => b.addEventListener("click", () => trocarA
 $("#c-cpf").addEventListener("input", (e) => { e.target.value = mascaraCpf(e.target.value); });
 
 /* ---------- Sessão ---------- */
+/* Cada perfil tem a sua tela: gestor e administrador vão para gestor.html e a
+   equipe de campo para campo.html. O gestor pode ver a tela do cidadão pelo
+   link "Visão do cidadão" (index.html?ver=cidadao). */
+const TELA_DO_PERFIL = { COLABORADOR: "campo.html", GESTOR: "gestor.html", ADMIN: "gestor.html" };
+const verComoCidadao = new URLSearchParams(location.search).get("ver") === "cidadao";
+
 function mostrarApp(u) {
+  const destino = TELA_DO_PERFIL[u.perfil];
+  if (destino && !(verComoCidadao && u.perfil !== "COLABORADOR")) { location.replace(destino); return; }
   $("#tela-auth").hidden = true;
   $("#tela-app").hidden = false;
   iniciarApp(u);

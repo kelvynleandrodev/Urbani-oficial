@@ -20,7 +20,7 @@ SELECT o.id, o.titulo, o.descricao, o.urgencia, o.status,
        o.usuario_id, u.nome AS autor_nome,
        o.endereco_referencia,
        ST_Y(o.localizacao) AS latitude, ST_X(o.localizacao) AS longitude,
-       o.apoios_total,
+       o.apoios_total, o.apoios_validos,
        EXISTS (SELECT 1 FROM apoios a
                WHERE a.ocorrencia_id = o.id AND a.usuario_id = %(me)s) AS apoiado_por_mim,
        o.criado_em, o.atualizado_em
@@ -33,11 +33,12 @@ _ORDENS = {
     "recentes": "o.criado_em DESC",
     "apoiadas": "o.apoios_total DESC, o.criado_em DESC",
     # Prioridade dinâmica: ocorrências em aberto primeiro; depois maior
-    # urgência; depois mais apoios (validação social); depois as mais antigas
-    # esperando (quem espera há mais tempo vem antes no empate).
+    # urgência; depois mais apoios VÁLIDOS (validação social, sem os apoios
+    # suspeitos: ver 003_gestao_campo.sql); depois quem espera há mais tempo.
+    # É a mesma ordem da fila do gestor (rotas/gestao.py).
     "prioridade": "(o.status IN ('RESOLVIDA','REJEITADA')), "
                   "CASE o.urgencia WHEN 'ALTA' THEN 3 WHEN 'MEDIA' THEN 2 ELSE 1 END DESC, "
-                  "o.apoios_total DESC, o.criado_em ASC",
+                  "o.apoios_validos DESC, o.criado_em ASC",
 }
 
 # Mudanças de status permitidas (as demais são recusadas)

@@ -1,0 +1,61 @@
+/* ==========================================================
+   campo.css · App da equipe de campo (campo.html)
+   Uma coluna, botões grandes para usar com uma mão e na rua.
+   ========================================================== */
+.app-campo { min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 76px; }
+
+.topo {
+  background: var(--grafite); color: #fff; padding: 14px 18px; position: sticky; top: 0; z-index: 5;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.topo b { display: block; font-size: 1.05rem; }
+.topo span { font-size: .82rem; color: var(--laranja); font-weight: 600; }
+.topo button { background: transparent; color: #fff; border: 2px solid #fff; border-radius: 999px; padding: 8px 16px; font-weight: 700; cursor: pointer; }
+
+.campo-conteudo { width: 100%; max-width: 720px; margin: 0 auto; padding: 16px; flex: 1; }
+.app-campo .stats { grid-template-columns: repeat(3, 1fr); }
+.gps { font-size: .8rem; color: var(--texto-suave); min-height: 1.2em; margin: 10px 0; }
+
+/* ---------- Cartão de ordem de serviço ---------- */
+.ordens { display: grid; gap: 14px; }
+.os {
+  background: var(--card); border: 1px solid var(--borda); border-left: 6px solid var(--rejeitado);
+  border-radius: var(--raio); padding: 16px; display: grid; gap: 8px;
+}
+.os[data-urgencia="ALTA"] { border-left-color: var(--urgente); }
+.os[data-urgencia="MEDIA"] { border-left-color: var(--analise); }
+.os[data-status="EM_EXECUCAO"] { box-shadow: 0 0 0 3px var(--laranja); }
+.os.destaque { outline: 3px solid var(--grafite); outline-offset: 2px; }
+.os h3 { font-size: 1.08rem; line-height: 1.3; }
+.os .meta { font-size: .86rem; color: var(--texto-suave); }
+.os .desc { font-size: .92rem; }
+.os .instr { font-size: .88rem; background: var(--fundo); border-radius: 10px; padding: 10px 12px; }
+.os .numero { margin-left: auto; font-size: .78rem; color: var(--texto-suave); font-weight: 700; }
+.os-acoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 4px; }
+.os-acoes > * {
+  min-height: 48px; border-radius: 999px; font-weight: 700; font-size: .92rem; cursor: pointer;
+  display: grid; place-items: center; text-decoration: none; text-align: center; padding: 0 14px;
+  background: #fff; color: var(--grafite); border: 1.5px solid var(--grafite);
+}
+.os-acoes .principal { background: var(--laranja); color: #fff; border-color: var(--laranja); }
+.os-acoes .perigo { color: #B42318; border-color: var(--urgente); }
+.os-acoes button:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ---------- Mapa ---------- */
+.mapa-campo { height: calc(100vh - 230px); min-height: 320px; border: 2px solid var(--grafite); border-radius: var(--raio); background: #E6EEF5; z-index: 0; margin-bottom: 10px; }
+.mapa-campo .sem-mapa { display: grid; place-items: center; height: 100%; padding: 20px; text-align: center; color: var(--texto-suave); }
+
+/* ---------- Navegação inferior ---------- */
+.abas-campo {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; background: var(--laranja);
+  display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+}
+.abas-campo button {
+  flex: 1; min-height: 48px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--grafite); color: #fff; font-weight: 700; font-size: .9rem;
+}
+.abas-campo button.active { background: #fff; color: var(--laranja); }
+
+#dlg-concluir .meta { font-size: .86rem; color: var(--texto-suave); }
+#dlg-concluir input[type=file] { padding: 8px; }
+.toast { bottom: 96px; }      /* acima da navegação inferior */

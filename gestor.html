@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Urbani · Gestão</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/gestao.css">
+</head>
+<body>
+
+<!-- ========== PAINEL DO GESTOR (visível só com sessão de GESTOR ou ADMIN) ========== -->
+<div class="app gestor" id="tela-app" hidden>
+
+  <nav class="sidebar" aria-label="Navegação da gestão">
+    <div class="avatar" aria-hidden="true"><span id="avatar-letra">G</span></div>
+    <p class="quem"><b id="nome-usuario"></b><span id="perfil-usuario"></span></p>
+    <button class="nav-btn active" data-tab="painel">Painel</button>
+    <button class="nav-btn" data-tab="fila">Fila de prioridade</button>
+    <button class="nav-btn" data-tab="mapa">Mapa</button>
+    <button class="nav-btn" data-tab="equipes">Equipes</button>
+    <button class="nav-btn" data-tab="fraude">Antifraude <i class="contador" id="fraude-n" hidden></i></button>
+    <a class="nav-btn link" href="index.html?ver=cidadao">Visão do cidadão</a>
+    <button class="nav-btn sair" id="btn-sair">Sair</button>
+  </nav>
+
+  <main class="content">
+
+    <!-- Aba: Painel (indicadores em tempo real) -->
+    <section class="panel active" id="tab-painel">
+      <h1 class="panel-title">Painel de gestão</h1>
+      <div class="barra">
+        <span class="ao-vivo" id="ao-vivo" title="Os indicadores se atualizam sozinhos quando algo muda"><i></i>Ao vivo · atualizado às <b id="atualizado">–</b></span>
+        <label class="periodo">Período
+          <select id="p-dias">
+            <option value="7">Últimos 7 dias</option>
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+          </select>
+        </label>
+      </div>
+      <div class="stats kpis" id="kpis"></div>
+      <div class="grade">
+        <article class="bloco largo">
+          <h2>Entradas e resolvidas por dia</h2>
+          <p class="legenda"><span><i style="background:var(--grafite)"></i>Novas ocorrências</span><span><i style="background:var(--resolvido)"></i>Resolvidas</span></p>
+          <div id="g-serie"></div>
+        </article>
+        <article class="bloco"><h2>Por categoria</h2><div id="g-categorias"></div></article>
+        <article class="bloco"><h2>Regiões com mais ocorrências em aberto</h2><div id="g-regioes"></div></article>
+        <article class="bloco largo"><h2>Equipes de campo</h2><div class="rolagem" id="g-equipes"></div></article>
+        <article class="bloco largo">
+          <h2>Validação por usuário</h2>
+          <p class="nota">Das ocorrências já decididas de cada pessoa no período, quantas a prefeitura confirmou e resolveu.</p>
+          <div class="rolagem" id="g-usuarios"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Aba: Fila de prioridade (triagem e despacho) -->
+    <section class="panel" id="tab-fila">
+      <h1 class="panel-title">Fila de prioridade</h1>
+      <p class="nota">Ordem: maior urgência, depois mais apoios válidos, depois quem espera há mais tempo. Apoios de contas recém-criadas ou suspensas não contam.</p>
+      <div class="filters">
+        <select id="f-situacao" aria-label="Situação">
+          <option value="ativas">Em aberto</option>
+          <option value="todas">Todas (com encerradas)</option>
+        </select>
+        <select id="f-status" aria-label="Status">
+          <option value="">Todos os status</option>
+          <option value="ABERTA">Aberta</option>
+          <option value="EM_ANALISE">Em análise</option>
+          <option value="EM_ANDAMENTO">Em andamento</option>
+          <option value="RESOLVIDA">Resolvida</option>
+          <option value="REJEITADA">Rejeitada</option>
+        </select>
+        <select id="f-categoria" aria-label="Categoria"><option value="">Todas as categorias</option></select>
+        <select id="f-urgencia" aria-label="Urgência">
+          <option value="">Todas as urgências</option>
+          <option value="ALTA">Alta</option><option value="MEDIA">Média</option><option value="BAIXA">Baixa</option>
+        </select>
+        <label class="marca"><input type="checkbox" id="f-atrasadas"> Só atrasadas</label>
+        <label class="marca"><input type="checkbox" id="f-sem-os"> Sem equipe</label>
+      </div>
+      <p class="contagem" id="fila-total"></p>
+      <div class="fila" id="fila"></div>
+      <button class="btn-sec centro" id="fila-mais" hidden>Carregar mais</button>
+    </section>
+
+    <!-- Aba: Mapa (camadas) -->
+    <section class="panel" id="tab-mapa">
+      <h1 class="panel-title">Mapa de ocorrências</h1>
+      <div class="camadas" id="camadas" role="group" aria-label="Camadas do mapa">
+        <button type="button" class="camada ativo" data-camada="ABERTA"><i style="background:var(--urgente)"></i>Abertas</button>
+        <button type="button" class="camada ativo" data-camada="EM_ANALISE"><i style="background:var(--analise)"></i>Em análise</button>
+        <button type="button" class="camada ativo" data-camada="EM_ANDAMENTO"><i style="background:var(--laranja)"></i>Em andamento</button>
+        <button type="button" class="camada" data-camada="ENCERRADAS"><i style="background:var(--resolvido)"></i>Encerradas (30 dias)</button>
+        <button type="button" class="camada" data-camada="DENSIDADE"><i style="background:rgba(255,90,0,.35)"></i>Densidade</button>
+        <label class="marca"><input type="checkbox" id="m-atrasadas"> Só atrasadas</label>
+      </div>
+      <div class="mapa-gestao" id="mapa-gestao" aria-label="Mapa de ocorrências"></div>
+      <p class="nota">O tamanho do círculo indica a urgência; contorno escuro indica prazo estourado. Clique em um ponto para abrir a ficha.</p>
+    </section>
+
+    <!-- Aba: Equipes -->
+    <section class="panel" id="tab-equipes">
+      <h1 class="panel-title">Equipes de campo</h1>
+      <div class="grade" id="equipes"></div>
+      <h2 class="subtitle">Colaboradores</h2>
+      <div class="bloco rolagem" id="colaboradores"></div>
+      <div class="grade">
+        <form class="bloco form-bloco" id="form-equipe" novalidate>
+          <h2>Nova equipe</h2>
+          <label class="campo">Nome<input id="e-nome" maxlength="80" placeholder="Ex.: Tapa-buraco Zona Sul"></label>
+          <label class="campo">Especialidade<select id="e-categoria"><option value="">Geral (todas as categorias)</option></select></label>
+          <p class="form-erro" id="e-erro" role="alert"></p>
+          <button class="btn-primary" type="submit">Criar equipe</button>
+        </form>
+        <form class="bloco form-bloco" id="form-colab" novalidate>
+          <h2>Nova conta de servidor</h2>
+          <label class="campo">Nome completo<input id="s-nome" autocomplete="off"></label>
+          <div class="linha2">
+            <label class="campo">CPF<input id="s-cpf" inputmode="numeric" placeholder="000.000.000-00" autocomplete="off"></label>
+            <label class="campo">Nascimento<input id="s-nasc" type="date"></label>
+          </div>
+          <label class="campo">E-mail funcional<input id="s-email" type="email" autocomplete="off"></label>
+          <div class="linha2">
+            <label class="campo">Senha inicial<input id="s-senha" type="password" autocomplete="new-password"></label>
+            <label class="campo">Perfil<select id="s-perfil"><option value="COLABORADOR">Colaborador de campo</option></select></label>
+          </div>
+          <label class="campo">Equipe<select id="s-equipe"><option value="">Definir depois</option></select></label>
+          <p class="form-erro" id="s-erro" role="alert"></p>
+          <button class="btn-primary" type="submit">Criar conta</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Aba: Antifraude -->
+    <section class="panel" id="tab-fraude">
+      <h1 class="panel-title">Antifraude</h1>
+      <p class="nota">Padrões suspeitos detectados nos dados. Nenhum alerta pune ninguém sozinho: a decisão é sua e fica registrada na auditoria.</p>
+      <div class="alertas" id="alertas"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Ficha da ocorrência: tudo o que o gestor precisa para decidir -->
+<dialog id="ficha" class="ficha" aria-label="Ficha da ocorrência"></dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="js/api.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/gestor.js"></script>
+</body>
+</html>
