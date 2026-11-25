@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1A1C24">
+  <title>Urbani · Equipe de campo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/gestao.css">
+  <link rel="stylesheet" href="css/campo.css">
+</head>
+<body>
+
+<!-- ========== APP DA EQUIPE DE CAMPO (pensado primeiro para o celular) ========== -->
+<div class="app-campo" id="tela-app" hidden>
+
+  <header class="topo">
+    <div><b id="c-nome"></b><span id="c-equipe">Carregando…</span></div>
+    <button type="button" id="btn-sair">Sair</button>
+  </header>
+
+  <main class="campo-conteudo">
+    <!-- Aba: A fazer -->
+    <section class="panel active" id="tab-fazer">
+      <div class="stats" id="c-resumo"></div>
+      <p class="gps" id="c-gps" role="status"></p>
+      <div class="ordens" id="lista-fazer"></div>
+    </section>
+
+    <!-- Aba: Mapa -->
+    <section class="panel" id="tab-mapa">
+      <div class="mapa-campo" id="mapa-campo" aria-label="Mapa das ordens de serviço"></div>
+      <p class="nota">Toque em um ponto para ver a ordem de serviço.</p>
+    </section>
+
+    <!-- Aba: Encerradas -->
+    <section class="panel" id="tab-encerradas">
+      <div class="ordens" id="lista-encerradas"></div>
+    </section>
+  </main>
+
+  <nav class="abas-campo" aria-label="Navegação">
+    <button type="button" class="active" data-tab="fazer">A fazer <i class="contador" id="c-n" hidden></i></button>
+    <button type="button" data-tab="mapa">Mapa</button>
+    <button type="button" data-tab="encerradas">Encerradas</button>
+  </nav>
+</div>
+
+<!-- Concluir o serviço: relato + foto + localização -->
+<dialog id="dlg-concluir">
+  <form id="form-concluir" novalidate>
+    <h2>Concluir serviço</h2>
+    <p class="meta" id="k-titulo"></p>
+    <label class="campo">O que foi feito
+      <textarea id="k-relatorio" rows="4" maxlength="2000" placeholder="Ex.: Buraco tapado com massa asfáltica, área sinalizada e liberada."></textarea>
+    </label>
+    <label class="campo">Foto do serviço pronto
+      <input type="file" id="k-foto" accept="image/*" capture="environment">
+    </label>
+    <p class="gps" id="k-gps" role="status"></p>
+    <p class="form-erro" id="k-erro" role="alert"></p>
+    <div class="dialog-acoes"><button class="btn-primary" type="submit">Concluir serviço</button><button class="btn-sec" type="button" id="k-cancelar">Voltar</button></div>
+  </form>
+</dialog>
+
+<!-- Entrada de foto "antes" (acionada pelo botão do cartão) -->
+<input type="file" id="foto-antes" accept="image/*" capture="environment" hidden>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="js/api.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/campo.js"></script>
+</body>
+</html>

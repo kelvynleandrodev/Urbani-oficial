@@ -143,6 +143,7 @@ class OcorrenciaSaida(BaseModel):
     latitude: float
     longitude: float
     apoios_total: int
+    apoios_validos: int = 0     # apoios que contam no ranking (ver 003_gestao_campo.sql)
     apoiado_por_mim: bool
     criado_em: datetime
     atualizado_em: datetime
@@ -161,3 +162,98 @@ class ApoiosSaida(BaseModel):
     ocorrencia_id: int
     apoios_total: int
     apoiado_por_mim: bool
+
+
+# ------------------- Gestão e campo (003_gestao_campo.sql) -------------------
+StatusOS = Literal["ATRIBUIDA", "EM_EXECUCAO", "CONCLUIDA", "DEVOLVIDA", "CANCELADA"]
+MotivoDenuncia = Literal["FALSA", "DUPLICADA", "OFENSIVA", "LOCAL_ERRADO", "OUTRO"]
+
+
+def _texto_obrigatorio(v: str, minimo: int, mensagem: str) -> str:
+    v = " ".join((v or "").split())
+    if len(v) < minimo:
+        raise ValueError(mensagem)
+    return v
+
+
+class DenunciaEntrada(BaseModel):
+    motivo: MotivoDenuncia
+    detalhe: str | None = Field(default=None, max_length=500)
+
+
+class UrgenciaEntrada(BaseModel):
+    urgencia: Urgencia
+    motivo: str = Field(max_length=500)
+
+    @field_validator("motivo")
+    @classmethod
+    def _motivo(cls, v: str) -> str:
+        return _texto_obrigatorio(v, 5, "Explique o motivo da reclassificação (mínimo de 5 caracteres).")
+
+
+class MotivoEntrada(BaseModel):
+    motivo: str = Field(max_length=500)
+
+    @field_validator("motivo")
+    @classmethod
+    def _motivo(cls, v: str) -> str:
+        return _texto_obrigatorio(v, 5, "Informe o motivo (mínimo de 5 caracteres).")
+
+
+class DuplicataEntrada(BaseModel):
+    principal_id: int
+
+
+class DenunciasAnaliseEntrada(BaseModel):
+    procedente: bool
+
+
+class OrdemEntrada(BaseModel):
+    equipe_id: int
+    responsavel_id: int | None = None
+    instrucoes: str | None = Field(default=None, max_length=1000)
+    prazo_em: datetime | None = None      # vazio = prazo do SLA da urgência
+
+
+class EquipeEntrada(BaseModel):
+    nome: str = Field(max_length=80)
+    categoria_id: int | None = None
+
+    @field_validator("nome")
+    @classmethod
+    def _nome(cls, v: str) -> str:
+        return _texto_obrigatorio(v, 3, "Informe o nome da equipe (mínimo de 3 caracteres).")
+
+
+class MembroEntrada(BaseModel):
+    usuario_id: int
+
+
+class ServidorEntrada(CadastroEntrada):
+    """Conta de servidor (colaborador de campo ou gestor), criada pela gestão."""
+    perfil: Literal["COLABORADOR", "GESTOR"] = "COLABORADOR"
+    equipe_id: int | None = None
+
+
+class ContaSituacaoEntrada(MotivoEntrada):
+    ativo: bool
+
+
+class PosicaoEntrada(BaseModel):
+    """Posição do aparelho do colaborador (opcional: o GPS pode falhar)."""
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+
+
+class ConclusaoEntrada(PosicaoEntrada):
+    relatorio: str = Field(max_length=2000)
+
+    @field_validator("relatorio")
+    @classmethod
+    def _relatorio(cls, v: str) -> str:
+        return _texto_obrigatorio(v, 10, "Descreva o serviço executado (mínimo de 10 caracteres).")
+
+
+class FotoEntrada(BaseModel):
+    tipo: Literal["ANTES", "DEPOIS"]
+    imagem: str = Field(description="Data URL: data:image/jpeg;base64,...", max_length=2_900_000)

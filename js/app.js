@@ -30,6 +30,8 @@ function abrirAba(nome) {
   $$(".panel").forEach((p) => p.classList.toggle("active", p.id === "tab-" + nome));
   $$(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === nome));
   window.scrollTo({ top: 0 });
+  if (nome === "nova") iniciarMapaEscolha();
+  if (mapaGeral) setTimeout(() => mapaGeral.invalidateSize(), 50);
 }
 $$(".nav-btn[data-tab]").forEach((b) => b.addEventListener("click", () => abrirAba(b.dataset.tab)));
 
@@ -51,7 +53,8 @@ function cardHTML(o) {
     <p class="desc">${esc(o.descricao)}</p>
     <div class="detalhes">
       Categoria: ${esc(o.categoria_nome)} · Urgência: ${URGENCIA[o.urgencia]}<br>Registrada em ${data(o.criado_em)}
-      <ol class="historico" aria-label="Histórico de status"></ol>${gestao}
+      <ol class="historico" aria-label="Histórico de status"></ol>
+      <div class="fotos-servico" aria-label="Fotos do serviço executado"></div>${gestao}
     </div>
     <div class="acoes">
       <button class="btn-apoiar ${o.apoiado_por_mim ? "ativo" : ""}" data-acao="apoiar"
@@ -105,16 +108,72 @@ async function renderComunidade() {
   }
 }
 
-/* Mapa: converte latitude/longitude em posição % dentro do placeholder */
+/* ---------- Mapa real (Leaflet + OpenStreetMap) ---------- */
+const COR_STATUS = { ABERTA: "#E53E3E", EM_ANALISE: "#D69E2E", EM_ANDAMENTO: "#D69E2E", RESOLVIDA: "#2F9E6B", REJEITADA: "#718096" };
+const CENTRO_PADRAO = [-23.5614, -46.6559];
+const TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const ATRIB = '&copy; colaboradores do <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+let mapaGeral = null, camadaPins = null, enquadrouGeral = false;
+let mapaEscolha = null, pinEscolha = null;
+
 function renderMapa() {
-  if (!ocorrencias.length) { $("#mapa").innerHTML = ""; return; }
-  const lats = ocorrencias.map((o) => o.latitude), lngs = ocorrencias.map((o) => o.longitude);
-  const [minLa, maxLa, minLo, maxLo] = [Math.min(...lats), Math.max(...lats), Math.min(...lngs), Math.max(...lngs)];
-  const pos = (v, min, max) => 10 + ((v - min) / ((max - min) || 1)) * 80;   // margem de 10%
-  $("#mapa").innerHTML = ocorrencias.map((o) =>
-    `<button class="pin ${o.status}" data-id="${o.id}" title="${esc(o.titulo)}" aria-label="${esc(o.titulo)}"
-      style="left:${pos(o.longitude, minLo, maxLo)}%;top:${100 - pos(o.latitude, minLa, maxLa)}%"></button>`
-  ).join("");
+  const el = $("#mapa");
+  if (!window.L) { el.innerHTML = '<p class="sem-mapa">Mapa indisponível (sem acesso à biblioteca Leaflet). Verifique sua conexão.</p>'; return; }
+  if (!mapaGeral) {
+    mapaGeral = L.map(el, { scrollWheelZoom: false }).setView(CENTRO_PADRAO, 13);
+    L.tileLayer(TILES, { maxZoom: 19, attribution: ATRIB }).addTo(mapaGeral);
+    camadaPins = L.layerGroup().addTo(mapaGeral);
+    mapaGeral.on("popupopen", (e) => {
+      const b = e.popup.getElement().querySelector("[data-ver]");
+      if (b) b.addEventListener("click", () => {
+        mapaGeral.closePopup();
+        abrirAba("comunidade");
+        $$(".card.destaque").forEach((c) => c.classList.remove("destaque"));
+        const alvo = $(`#feed-comunidade .card[data-id="${b.dataset.ver}"]`);
+        if (alvo) { alvo.classList.add("destaque"); alvo.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      });
+    });
+  }
+  camadaPins.clearLayers();
+  const pts = ocorrencias.filter((o) => o.latitude != null && o.longitude != null);
+  pts.forEach((o) => L.circleMarker([o.latitude, o.longitude], {
+    radius: 9, fillColor: COR_STATUS[o.status] || "#718096", fillOpacity: 0.95, color: "#fff", weight: 2,
+  }).bindPopup(`<b>${esc(o.titulo)}</b>${ROTULO[o.status] || o.status}<br><button type="button" data-ver="${o.id}">Ver na Comunidade</button>`)
+    .addTo(camadaPins));
+  if (!enquadrouGeral && pts.length) {
+    mapaGeral.fitBounds(L.latLngBounds(pts.map((o) => [o.latitude, o.longitude])).pad(0.15), { maxZoom: 16 });
+    enquadrouGeral = true;
+  }
+  mapaGeral.invalidateSize();
+}
+
+/* Mapa de escolha do local no formulário: um toque define latitude/longitude */
+function marcarLocal(lat, lng) {
+  $("#f-lat").value = lat.toFixed(6);
+  $("#f-lng").value = lng.toFixed(6);
+  if (!mapaEscolha) return;
+  if (pinEscolha) pinEscolha.setLatLng([lat, lng]);
+  else pinEscolha = L.circleMarker([lat, lng], { radius: 11, fillColor: "#FF5A00", fillOpacity: 0.95, color: "#fff", weight: 3 }).addTo(mapaEscolha);
+  mapaEscolha.setView([lat, lng], Math.max(mapaEscolha.getZoom(), 16));
+}
+function iniciarMapaEscolha() {
+  const el = $("#mapa-escolha");
+  if (!window.L) { el.hidden = true; return; }
+  if (!mapaEscolha) {
+    mapaEscolha = L.map(el).setView(CENTRO_PADRAO, 13);
+    L.tileLayer(TILES, { maxZoom: 19, attribution: ATRIB }).addTo(mapaEscolha);
+    mapaEscolha.on("click", (e) => {
+      marcarLocal(e.latlng.lat, e.latlng.lng);
+      $("#local-aviso").textContent = "Local marcado no mapa. Toque em outro ponto para ajustar.";
+    });
+    const digitado = () => {
+      const la = parseFloat($("#f-lat").value.replace(",", ".")), lo = parseFloat($("#f-lng").value.replace(",", "."));
+      if (Number.isFinite(la) && Number.isFinite(lo) && Math.abs(la) <= 90 && Math.abs(lo) <= 180) marcarLocal(la, lo);
+    };
+    $("#f-lat").addEventListener("change", digitado);
+    $("#f-lng").addEventListener("change", digitado);
+  }
+  setTimeout(() => mapaEscolha.invalidateSize(), 50);
 }
 
 /* Busca os dados na API e atualiza todas as telas */
@@ -150,6 +209,26 @@ async function carregarHistorico(card) {
   } catch (err) {
     lista.innerHTML = `<li>${esc(err.message)}</li>`;
   }
+  carregarFotosDoServico(card);
+}
+
+/* Fotos que a equipe de campo anexou à ordem de serviço (antes/depois) */
+async function carregarFotosDoServico(card) {
+  const area = card.querySelector(".fotos-servico");
+  if (!area || area.dataset.carregado) return;
+  area.dataset.carregado = "1";
+  try {
+    const fotos = await Api.fotos(card.dataset.id);
+    for (const f of fotos) {
+      const fig = document.createElement("figure");
+      const img = document.createElement("img");
+      img.alt = f.tipo === "ANTES" ? "Foto antes do serviço" : "Foto depois do serviço";
+      img.src = await Api.fotoUrl(f.id);
+      const leg = document.createElement("figcaption");
+      leg.textContent = f.tipo === "ANTES" ? "Antes" : "Depois";
+      fig.append(img, leg); area.append(fig);
+    }
+  } catch { /* sem fotos: a área fica vazia */ }
 }
 
 document.addEventListener("click", async (e) => {
@@ -167,7 +246,7 @@ document.addEventListener("click", async (e) => {
         await recarregar();
       } catch (err) { toast(err.message); btn.disabled = false; }
     } else if (acao === "denunciar") {
-      if (confirm("Denunciar esta solicitação como inadequada?")) toast("Denúncia enviada para análise da prefeitura.");
+      abrirDenuncia(id);
     } else if (acao === "status") {
       const novo = card.querySelector("[data-novo-status]").value;
       btn.disabled = true;
@@ -184,14 +263,6 @@ document.addEventListener("click", async (e) => {
     }
     return;
   }
-  // Marcadores do mapa: abre a Comunidade e destaca o card
-  const pin = e.target.closest(".pin");
-  if (pin) {
-    abrirAba("comunidade");
-    $$(".card.destaque").forEach((c) => c.classList.remove("destaque"));
-    const alvo = $(`#feed-comunidade .card[data-id="${pin.dataset.id}"]`);
-    if (alvo) { alvo.classList.add("destaque"); alvo.scrollIntoView({ behavior: "smooth", block: "center" }); }
-  }
 });
 
 ["#flt-categoria", "#flt-status", "#flt-ordem"].forEach((s) => $(s).addEventListener("change", renderComunidade));
@@ -203,8 +274,7 @@ $("#btn-localizar").addEventListener("click", () => {
   aviso.textContent = "Obtendo localização…";
   navigator.geolocation.getCurrentPosition(
     (p) => {
-      $("#f-lat").value = p.coords.latitude.toFixed(6);
-      $("#f-lng").value = p.coords.longitude.toFixed(6);
+      marcarLocal(p.coords.latitude, p.coords.longitude);
       aviso.textContent = `Localização obtida (precisão de ~${Math.round(p.coords.accuracy)} m).`;
     },
     () => { aviso.textContent = "Não foi possível obter a localização. Digite as coordenadas."; },
@@ -232,6 +302,7 @@ $("#form-nova").addEventListener("submit", async (e) => {
     $("#form-erro").textContent = "";
     $("#local-aviso").textContent = "";
     e.target.reset();
+    if (pinEscolha && mapaEscolha) { mapaEscolha.removeLayer(pinEscolha); pinEscolha = null; }
     toast("Ocorrência registrada!");
     await recarregar();
     abrirAba("minhas");
@@ -239,6 +310,23 @@ $("#form-nova").addEventListener("submit", async (e) => {
     $("#form-erro").textContent = err.message;
   } finally {
     btn.disabled = false;
+  }
+});
+
+/* ---------- 4b. DENÚNCIA (vai para a análise do gestor, aba Antifraude) ---------- */
+const modalDenuncia = $("#modal-denuncia");
+function abrirDenuncia(id) {
+  $("#form-denuncia").reset(); $("#d-erro").textContent = "";
+  modalDenuncia.dataset.id = id; modalDenuncia.showModal();
+}
+$("#d-cancelar").addEventListener("click", () => modalDenuncia.close());
+$("#form-denuncia").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await Api.denunciar(Number(modalDenuncia.dataset.id), $("#d-motivo").value, $("#d-detalhe").value.trim() || null);
+    modalDenuncia.close(); toast("Denúncia enviada para análise da prefeitura.");
+  } catch (err) {
+    $("#d-erro").textContent = err.message;    // já denunciou, ou é a própria ocorrência
   }
 });
 
@@ -272,6 +360,7 @@ async function iniciarApp(u) {
   $("#nome-usuario").textContent = u.nome.split(" ")[0];
   $("#avatar-letra").textContent = u.nome[0];
   $("#ad-lateral").innerHTML = adHTML(ANUNCIOS[0]);
+  $("#link-gestao").hidden = !ehGestor();      // gestor vendo a tela do cidadão: atalho de volta
   atualizarAlertaPerfil();
   abrirAba("geral");
   try {

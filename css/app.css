@@ -118,25 +118,12 @@
 
 /* ---------- Mapa (placeholder em CSS) ---------- */
 .side-right { padding: 24px 24px 24px 0; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-.map {
-  position: relative; height: 340px; border-radius: var(--raio); overflow: hidden;
-  border: 2px solid var(--grafite); background-color: #E6EEF5;
-  background-image:
-    linear-gradient(rgba(26,28,36,.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(26,28,36,.07) 1px, transparent 1px),
-    linear-gradient(115deg, transparent 46%, #fff 46% 49%, transparent 49%),
-    linear-gradient(25deg, transparent 60%, #fff 60% 62%, transparent 62%);
-  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%;
-}
-.pin {
-  position: absolute; width: 20px; height: 20px; border-radius: 50% 50% 50% 0;
-  transform: translate(-50%, -100%) rotate(-45deg); border: 2px solid #fff;
-  background: var(--rejeitado); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,.3);
-}
-.pin.ABERTA { background: var(--urgente); }
-.pin.EM_ANALISE, .pin.EM_ANDAMENTO { background: var(--analise); }
-.pin.RESOLVIDA { background: var(--resolvido); }
-.pin:hover, .pin.ativo { z-index: 2; outline: 3px solid var(--laranja); }
+.map { position: relative; height: 340px; border-radius: var(--raio); overflow: hidden; border: 2px solid var(--grafite); background: #E6EEF5; z-index: 0; }
+.mapa-escolha { height: 220px; border-radius: 10px; overflow: hidden; border: 1px solid var(--grafite); margin-top: 8px; z-index: 0; }
+.sem-mapa { padding: 16px; font-size: .85rem; color: var(--texto-suave); }
+.leaflet-popup-content { font-family: inherit; font-size: .85rem; line-height: 1.4; margin: 12px 14px; }
+.leaflet-popup-content b { display: block; margin-bottom: 2px; }
+.leaflet-popup-content button { margin-top: 8px; border: 0; border-radius: 999px; padding: 6px 14px; background: var(--laranja); color: #fff; font-weight: 700; cursor: pointer; }
 .map-legend { display: flex; gap: 14px; font-size: .78rem; color: var(--texto-suave); }
 .map-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
 
@@ -191,3 +178,12 @@ dialog form { display: grid; gap: 14px; }
 .gestao button { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer; background: var(--grafite); color: #fff; }
 .acoes button:disabled, .gestao button:disabled, .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 720px) { .form-card .linha2 { grid-template-columns: 1fr; } }
+/* ---------- Integração com gestão e campo: fotos do serviço e atalho do gestor ---------- */
+.fotos-servico { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.fotos-servico:empty { display: none; }
+.fotos-servico figure { margin: 0; }
+.fotos-servico img { width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--borda); display: block; }
+.fotos-servico figcaption { font-size: .7rem; text-align: center; }
+.nav-btn.link-gestao { text-decoration: none; text-align: center; margin-top: auto; background: transparent; border: 2px solid #fff; }
+.nav-btn.link-gestao + .nav-btn.sair { margin-top: 0; }
+@media (max-width: 720px) { .nav-btn.link-gestao { display: none; } }

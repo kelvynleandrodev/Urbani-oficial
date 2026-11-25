@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Urbani · Gestão urbana com dados reais</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/auth.css">
   <link rel="stylesheet" href="css/app.css">
@@ -33,7 +34,10 @@
       </div>
       <p class="form-erro" id="l-erro" role="alert"></p>
       <button class="btn-primary" type="submit">Entrar no Urbani</button>
-      <p class="demo">Conta de demonstração: mariana.souza@exemplo.com · senha urbani123</p>
+      <p class="demo">Contas de demonstração (senha urbani123):<br>
+        Cidadã: mariana.souza@exemplo.com<br>
+        Gestora: fernanda.alves@prefeitura.exemplo.gov.br<br>
+        Equipe de campo: joao.pereira@urbani.exemplo.com</p>
     </form>
 
     <form id="form-cadastro" hidden novalidate>
@@ -64,6 +68,7 @@
     <button class="nav-btn" data-tab="nova">Nova solicitação</button>
     <button class="nav-btn" data-tab="comunidade">Comunidade</button>
     <button class="nav-btn" data-tab="minhas">Minhas solicitações</button>
+    <a class="nav-btn link-gestao" id="link-gestao" href="gestor.html" hidden>Painel de gestão</a>
     <button class="nav-btn sair" id="btn-sair">Sair</button>
   </nav>
 
@@ -110,7 +115,8 @@
             <label>Latitude<input id="f-lat" inputmode="decimal" placeholder="-23.5614"></label>
             <label>Longitude<input id="f-lng" inputmode="decimal" placeholder="-46.6559"></label>
           </div>
-          <p class="local-aviso" id="local-aviso" role="status"></p>
+          <div class="mapa-escolha" id="mapa-escolha" aria-label="Clique no mapa para marcar o local"></div>
+          <p class="local-aviso" id="local-aviso" role="status">Dica: toque no mapa para marcar o local exato.</p>
         </fieldset>
         <label>Foto <span class="breve"><i>em breve</i></span>
           <input type="file" id="f-foto" accept="image/*" disabled>
@@ -173,7 +179,26 @@
   </form>
 </dialog>
 
+<dialog id="modal-denuncia">
+  <form id="form-denuncia" novalidate>
+    <h2>Denunciar solicitação</h2>
+    <label class="campo">Motivo
+      <select id="d-motivo">
+        <option value="FALSA">A informação é falsa</option>
+        <option value="DUPLICADA">Já existe outra solicitação igual</option>
+        <option value="LOCAL_ERRADO">O local está errado</option>
+        <option value="OFENSIVA">Conteúdo ofensivo</option>
+        <option value="OUTRO">Outro motivo</option>
+      </select>
+    </label>
+    <label class="campo">Detalhes (opcional)<input id="d-detalhe" maxlength="500" placeholder="Conte o que você viu"></label>
+    <p class="form-erro" id="d-erro" role="alert"></p>
+    <div class="dialog-acoes"><button class="btn-primary" type="submit">Enviar denúncia</button><button class="btn-sec" type="button" id="d-cancelar">Cancelar</button></div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
